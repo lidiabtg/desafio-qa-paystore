@@ -1,0 +1,40 @@
+name: Testes de QA
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Instalar Chromium do Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Executar testes de API
+        run: npm run test:api
+
+      - name: Executar testes web
+        run: npm run test:web
+
+      - name: Publicar relatórios
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorios-qa
+          path: relatorios/
+          if-no-files-found: warn

@@ -1,0 +1,256 @@
+{
+  "info": {
+    "_postman_id": "7b00e0db-f8d8-4c70-b5c0-qa-paystore-001",
+    "name": "Swagger Petstore - Desafio QA PayStore",
+    "description": "Collection automatizada para validar criação, consulta, erro e exclusão de pets.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.collectionVariables.get('petId')) {",
+          "  const timestamp = Date.now().toString().slice(-10);",
+          "  const random = Math.floor(Math.random() * 89 + 10).toString();",
+          "  pm.collectionVariables.set('petId', `${timestamp}${random}`);",
+          "}",
+          "if (!pm.collectionVariables.get('inexistentPetId')) {",
+          "  pm.collectionVariables.set('inexistentPetId', `9${Date.now().toString().slice(-11)}`);",
+          "}",
+          "pm.collectionVariables.set('petName', 'Luna QA');",
+          "pm.collectionVariables.set('petStatus', 'available');"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "petId",
+      "value": ""
+    },
+    {
+      "key": "inexistentPetId",
+      "value": ""
+    },
+    {
+      "key": "petName",
+      "value": "Luna QA"
+    },
+    {
+      "key": "petStatus",
+      "value": "available"
+    }
+  ],
+  "item": [
+    {
+      "name": "REQ-01 - Criar novo Pet",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"{{petId}}\",\n  \"category\": {\n    \"id\": 1,\n    \"name\": \"Cães\"\n  },\n  \"name\": \"{{petName}}\",\n  \"photoUrls\": [\n    \"https://example.com/luna.jpg\"\n  ],\n  \"tags\": [\n    {\n      \"id\": 1,\n      \"name\": \"qa-automation\"\n    }\n  ],\n  \"status\": \"{{petStatus}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/pet",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "pet"
+          ]
+        },
+        "description": "Cadastra um pet com ID dinâmico para evitar colisões no ambiente público."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code deve ser 200', () => pm.response.to.have.status(200));",
+              "pm.test('Resposta deve ser JSON', () => pm.response.to.be.json);",
+              "const body = pm.response.json();",
+              "pm.test('ID deve corresponder ao enviado', () => pm.expect(String(body.id)).to.eql(pm.collectionVariables.get('petId')));",
+              "pm.test('Nome deve corresponder ao enviado', () => pm.expect(body.name).to.eql(pm.collectionVariables.get('petName')));",
+              "pm.test('Status deve corresponder ao enviado', () => pm.expect(body.status).to.eql(pm.collectionVariables.get('petStatus')));",
+              "pm.test('photoUrls deve ser um array não vazio', () => { pm.expect(body.photoUrls).to.be.an('array').that.is.not.empty; });",
+              "pm.test('Tempo de resposta deve ser inferior a 3000 ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "REQ-02 - Consultar Pet por ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/pet/{{petId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "pet",
+            "{{petId}}"
+          ]
+        },
+        "description": "Busca o pet criado e compara os campos principais."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code deve ser 200', () => pm.response.to.have.status(200));",
+              "pm.test('Resposta deve ser JSON', () => pm.response.to.be.json);",
+              "const body = pm.response.json();",
+              "pm.test('ID consultado deve ser o mesmo cadastrado', () => pm.expect(String(body.id)).to.eql(pm.collectionVariables.get('petId')));",
+              "pm.test('Nome consultado deve ser o mesmo cadastrado', () => pm.expect(body.name).to.eql(pm.collectionVariables.get('petName')));",
+              "pm.test('Status consultado deve ser o mesmo cadastrado', () => pm.expect(body.status).to.eql(pm.collectionVariables.get('petStatus')));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "REQ-03 - Consultar ID inexistente",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/pet/{{inexistentPetId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "pet",
+            "{{inexistentPetId}}"
+          ]
+        },
+        "description": "Valida o tratamento de erro ao buscar um recurso inexistente."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code deve ser 404', () => pm.response.to.have.status(404));",
+              "pm.test('Resposta deve indicar Pet not found', () => {",
+              "  let mensagem = pm.response.text();",
+              "  try { const json = pm.response.json(); mensagem = json.message || mensagem; } catch (_) {}",
+              "  pm.expect(mensagem.toLowerCase()).to.include('pet not found');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "REQ-04 - Excluir Pet criado",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "api_key",
+            "value": "special-key"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/pet/{{petId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "pet",
+            "{{petId}}"
+          ]
+        },
+        "description": "Exclui o pet cadastrado no início da execução."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code deve ser 200', () => pm.response.to.have.status(200));",
+              "pm.test('Resposta deve referenciar o ID excluído', () => {",
+              "  let valor = pm.response.text();",
+              "  try { const json = pm.response.json(); valor = String(json.message || json.code || valor); } catch (_) {}",
+              "  pm.expect(valor).to.include(pm.collectionVariables.get('petId'));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Validação adicional - Confirmar exclusão",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/pet/{{petId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "pet",
+            "{{petId}}"
+          ]
+        },
+        "description": "Confirma que o pet não pode ser recuperado após a exclusão."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Após excluir, consulta deve retornar 404', () => pm.response.to.have.status(404));",
+              "pm.test('Resposta deve indicar Pet not found', () => {",
+              "  let mensagem = pm.response.text();",
+              "  try { const json = pm.response.json(); mensagem = json.message || mensagem; } catch (_) {}",
+              "  pm.expect(mensagem.toLowerCase()).to.include('pet not found');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ]
+}

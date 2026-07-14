@@ -1,0 +1,21 @@
+{
+  "name": "qa-paystore-desafio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Desafio técnico de QA: API Swagger Petstore e frontend Phoebus",
+  "scripts": {
+    "test:api": "newman run postman/Swagger-Petstore-QA.postman_collection.json -e postman/Swagger-Petstore-QA.postman_environment.json -r cli,htmlextra --reporter-htmlextra-export relatorios/newman-report.html --reporter-htmlextra-title 'Swagger Petstore - QA'",
+    "test:web": "playwright test",
+    "test:web:headed": "playwright test --headed",
+    "test:web:ui": "playwright test --ui",
+    "test:all": "npm run test:api && npm run test:web",
+    "report:web": "playwright show-report relatorios/playwright-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.53.0",
+    "@types/node": "^22.15.0",
+    "newman": "^6.2.1",
+    "newman-reporter-htmlextra": "^1.23.1",
+    "typescript": "^5.8.3"
+  }
+}
