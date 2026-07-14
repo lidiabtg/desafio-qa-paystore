@@ -1,136 +1,283 @@
 # Desafio Técnico QA — PayStore
 
-Projeto de qualidade de software com testes automatizados de **API** e **frontend**, desenvolvido para o desafio técnico de QA da Phoebus/PayStore.
+Projeto desenvolvido para o desafio técnico de QA da PayStore, contemplando planejamento de testes, automação de API, automação web, geração de relatórios e integração contínua.
 
-## Entregas
+---
 
-- Plano de testes em [`docs/PLANO-DE-TESTES.md`](docs/PLANO-DE-TESTES.md).
-- Collection e environment do Postman.
-- Testes automatizados de API executáveis pelo Newman.
-- Teste frontend com Playwright e TypeScript.
-- Screenshots automáticos para três anos da linha do tempo.
-- Relatórios HTML de API e frontend.
-- Pipeline com GitHub Actions.
+# Objetivo
 
-## Tecnologias escolhidas
+Validar:
 
-**Postman + Newman:** facilitam a demonstração visual das requisições, a execução no terminal e a geração de relatório HTML.
+- As operações de cadastro, consulta, tratamento de erro e exclusão de pets na Swagger Petstore.
+- A navegação até a seção **História** do site da Phoebus.
+- A consistência entre o ano selecionado na linha do tempo e o conteúdo exibido ao usuário.
 
-**Playwright + TypeScript:** oferece esperas automáticas, boas mensagens de erro, screenshots, traces, vídeos em falhas e relatório HTML nativo. Os seletores usam conteúdo visível, evitando dependência de classes CSS geradas.
+---
 
-## Estrutura
+# Tecnologias Utilizadas
+
+- Postman
+- Newman
+- Playwright
+- TypeScript
+- GitHub Actions
+- Node.js
+
+---
+
+# Estrutura do Projeto
 
 ```text
 qa-paystore/
-├── .github/workflows/qa.yml
-├── docs/PLANO-DE-TESTES.md
-├── evidencias/README.md
+├── .github/
+│   └── workflows/
+│       └── qa.yml
+├── docs/
+│   └── PLANO-DE-TESTES.md
+├── evidencias/
+│   └── README.md
 ├── postman/
 │   ├── Swagger-Petstore-QA.postman_collection.json
 │   └── Swagger-Petstore-QA.postman_environment.json
-├── tests/historia.spec.ts
+├── relatorios/
+├── tests/
+│   └── historia.spec.ts
 ├── package.json
 ├── playwright.config.ts
 ├── tsconfig.json
 └── README.md
 ```
 
-## Pré-requisitos
+---
 
-- Node.js 20 ou superior.
-- npm.
-- Acesso à internet.
+# Pré-requisitos
 
-## Instalação
+- Node.js 22 ou superior
+- npm
+- Google Chrome ou Chromium
+- Acesso à internet
+
+---
+
+# Instalação
 
 ```bash
 npm install
+```
+
+Instalar o navegador utilizado pelo Playwright:
+
+```bash
 npx playwright install chromium
 ```
 
-O `npm install` também gera o `package-lock.json`, que deve ser incluído antes de usar o workflow do GitHub Actions.
+No Windows PowerShell:
 
-## Testes de API
+```powershell
+npm.cmd install
+npx.cmd playwright install chromium
+```
+
+---
+
+# Execução dos Testes
+
+## API
 
 ```bash
 npm run test:api
 ```
 
-Fluxo executado:
+Windows:
 
-1. Cadastro de um pet com ID dinâmico.
-2. Consulta e comparação dos dados.
-3. Consulta de ID inexistente e validação da mensagem de erro.
-4. Exclusão do pet criado.
-5. Consulta adicional para confirmar a exclusão.
+```powershell
+npm.cmd run test:api
+```
 
-Relatório: `relatorios/newman-report.html`.
+## Frontend
 
-### Execução pelo Postman
-
-1. Importe os dois JSONs da pasta `postman/`.
-2. Selecione o environment **Swagger Petstore - QA**.
-3. Abra a collection e clique em **Run collection**.
-4. Mantenha a ordem original das requisições.
-
-## Teste frontend
-
-Execução padrão:
+Modo headless:
 
 ```bash
 npm run test:web
 ```
 
-Execução com navegador visível para apresentação:
+Modo com navegador aberto:
 
 ```bash
 npm run test:web:headed
 ```
 
-Abrir relatório:
+Windows:
 
-```bash
-npm run report:web
+```powershell
+npm.cmd run test:web
+npm.cmd run test:web:headed
 ```
 
-O teste abre o site, acessa **História**, seleciona 1997, 2010 e 2022, compara cada seleção com a descrição exibida e anexa uma captura da página ao relatório.
-
-## Estratégia para identificar o ano correto
-
-Para cada ano, a automação:
-
-1. Procura elementos cujo texto seja exatamente o ano.
-2. Escolhe o primeiro elemento visível.
-3. Clica nele.
-4. Aguarda uma descrição visível iniciada pelo padrão `AAAA -`.
-5. Compara o início do texto com o ano selecionado.
-
-Isso reduz falsos resultados causados por conteúdo duplicado ou oculto no DOM.
-
-## Executar tudo
+## Executar todos os testes
 
 ```bash
 npm run test:all
 ```
 
-## Evidências
+---
 
-- API: `relatorios/newman-report.html`.
-- Frontend: `relatorios/playwright-report/index.html`.
-- Falhas frontend: trace, screenshot e vídeo em `relatorios/test-results/`.
-- Screenshots dos três anos: anexados ao relatório Playwright.
+# Fluxo Automatizado da API
 
-As evidências reais são geradas durante a execução, garantindo que correspondam ao resultado efetivamente obtido.
+O conjunto de testes realiza:
 
-## Demonstração sugerida
+1. Cadastro de um pet.
+2. Consulta do pet cadastrado.
+3. Validação dos dados retornados.
+4. Consulta de um ID inexistente.
+5. Exclusão do pet.
+6. Confirmação da exclusão.
 
-1. Mostrar o plano e explicar os riscos priorizados.
-2. Rodar a collection no Postman ou pelo Newman.
-3. Abrir o relatório da API.
-4. Executar `npm run test:web:headed`.
-5. Abrir o relatório Playwright e mostrar os screenshots.
-6. Explicar a seleção do elemento visível e a validação com `AAAA -`.
+Para evitar conflitos com outros usuários da API pública, é utilizado um ID dinâmico.
 
-## Observação sobre a API pública
+---
 
-A Swagger Petstore é compartilhada. O projeto gera um ID baseado em timestamp e sufixo aleatório para reduzir colisões. Indisponibilidade externa ou interferência de outra execução deve ser diferenciada de falha do teste.
+# Fluxo Automatizado do Frontend
+
+O teste realiza:
+
+1. Acessar o site da Phoebus.
+2. Navegar até a seção **História**.
+3. Selecionar os anos **1997**, **2010** e **2022**.
+4. Validar que a descrição apresentada inicia com o mesmo ano selecionado.
+5. Registrar evidências da execução.
+
+---
+
+# Estratégia da Automação Web
+
+A automação utiliza seletores por acessibilidade (`Role`) e por conteúdo visível, reduzindo a dependência de classes CSS geradas dinamicamente.
+
+Para cada ano selecionado, o teste:
+
+- identifica o botão correspondente;
+- realiza a interação;
+- aguarda a atualização do conteúdo;
+- valida que a descrição inicia com o ano esperado.
+
+---
+
+# Relatórios
+
+## API
+
+Após a execução do Newman é gerado:
+
+```text
+relatorios/newman-report.html
+```
+
+## Frontend
+
+Após a execução do Playwright são gerados:
+
+```text
+relatorios/playwright-report/
+```
+
+Quando ocorre falha durante a execução, também podem ser gerados:
+
+- `video.webm`
+- `trace.zip`
+- `error-context.md`
+
+---
+
+# Integração Contínua
+
+O projeto possui um workflow do GitHub Actions responsável por:
+
+- instalar as dependências;
+- instalar o Chromium;
+- executar os testes de API;
+- executar os testes frontend;
+- publicar os relatórios como artefatos.
+
+Arquivo:
+
+```text
+.github/workflows/qa.yml
+```
+
+---
+
+# Plano de Testes
+
+A documentação completa encontra-se em:
+
+```text
+docs/PLANO-DE-TESTES.md
+```
+
+O documento contém:
+
+- objetivo;
+- escopo;
+- estratégia;
+- critérios de entrada e saída;
+- casos de teste;
+- riscos e mitigações;
+- registro de defeitos;
+- observações da execução.
+
+---
+
+# Limitação Conhecida
+
+Durante a automação da seção **História** do site da Phoebus foi observado comportamento inconsistente na atualização da linha do tempo.
+
+Em algumas execuções automatizadas, após a seleção do ano **2010**, o conteúdo exibido permanece referente ao ano anteriormente selecionado, apesar de o elemento ter sido localizado corretamente pelo Playwright.
+
+Também foram observados, em determinadas execuções, timeouts relacionados à estabilidade de elementos da página.
+
+Para investigar esse comportamento foram avaliadas diferentes abordagens, incluindo:
+
+- seletores por texto;
+- seletores por acessibilidade (`getByRole`);
+- Playwright Codegen;
+- esperas explícitas;
+- clique convencional;
+- clique forçado;
+- navegação por teclado;
+- análise utilizando o Trace Viewer.
+
+Mesmo após essas tentativas, o comportamento permaneceu inconsistente durante algumas execuções automatizadas.
+
+Essa limitação foi registrada no Plano de Testes para garantir transparência sobre os resultados obtidos.
+
+---
+
+# Evidências
+
+As evidências geradas durante a execução dos testes ficam disponíveis em:
+
+```text
+relatorios/
+```
+
+Podem incluir:
+
+- relatório HTML do Newman;
+- relatório HTML do Playwright;
+- capturas de tela;
+- vídeos (`video.webm`);
+- arquivos de trace (`trace.zip`);
+- `error-context.md`.
+
+---
+
+# Repositório
+
+https://github.com/lidiabtg/desafio-qa-paystore
+
+---
+
+# Licença
+
+Projeto desenvolvido exclusivamente para fins de avaliação técnica.
