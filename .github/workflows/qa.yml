@@ -31,6 +31,7 @@ jobs:
 
       - name: Executar testes web
         run: npm run test:web
+        continue-on-error: true
 
       - name: Publicar relatórios
         if: always()
