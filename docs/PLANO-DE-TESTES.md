@@ -2,103 +2,207 @@
 
 ## 1. Objetivo
 
-Validar as operações essenciais de cadastro, consulta, tratamento de erro e exclusão de pets na Swagger Petstore, além de verificar a consistência entre o ano selecionado e o ano apresentado na descrição da linha do tempo do site da Phoebus.
+Validar as operações essenciais de cadastro, consulta, tratamento de erro e exclusão de pets na Swagger Petstore, além de verificar se o conteúdo exibido na linha do tempo do site da Phoebus corresponde ao ano selecionado pelo usuário.
+
+---
 
 ## 2. Escopo
 
 ### Backend
-- `POST /pet`: cadastrar um pet.
-- `GET /pet/{petId}`: consultar o pet cadastrado.
-- `GET /pet/{petId}` com ID inexistente: validar o tratamento de erro.
-- `DELETE /pet/{petId}`: excluir o pet.
-- Confirmação adicional: consultar o pet após a exclusão e esperar `404`.
+
+- Cadastrar um pet utilizando o endpoint `POST /pet`.
+- Consultar o pet cadastrado utilizando o endpoint `GET /pet/{petId}`.
+- Validar o comportamento da API para um ID inexistente.
+- Excluir o pet utilizando o endpoint `DELETE /pet/{petId}`.
+- Confirmar a exclusão consultando novamente o mesmo ID e esperando uma resposta `404`.
 
 ### Frontend
+
 - Acessar o site da Phoebus.
 - Navegar até a seção **História**.
-- Selecionar três anos: 1997, 2010 e 2022.
-- Confirmar que a descrição visível começa com o mesmo ano selecionado.
-- Capturar uma imagem de evidência para cada ano.
+- Selecionar os anos **1997**, **2010** e **2022**.
+- Validar que o conteúdo exibido corresponde ao ano selecionado.
+- Registrar evidências da execução (capturas de tela, vídeos e arquivos de trace, quando aplicável).
 
-## 3. Fora do escopo
+---
 
-- Testes de carga, estresse, segurança e acessibilidade aprofundada.
-- Validação de todos os endpoints da Petstore.
-- Validação editorial completa do conteúdo histórico.
+## 3. Fora do Escopo
+
+- Testes de carga, estresse e desempenho.
+- Testes de segurança.
+- Testes completos de acessibilidade.
+- Validação de todos os endpoints da Swagger Petstore.
 - Compatibilidade com todos os navegadores e dispositivos.
 
-## 4. Estratégia
+---
 
-Os cenários priorizam o fluxo CRUD solicitado e os principais riscos:
+## 4. Estratégia de Testes
 
-1. **Integridade dos dados:** o recurso consultado deve preservar ID, nome e status enviados no cadastro.
-2. **Contrato HTTP:** cada operação deve retornar um código coerente com seu resultado.
-3. **Tratamento de erro:** recursos inexistentes não podem ser apresentados como válidos.
-4. **Persistência da exclusão:** após deletar, o recurso não deve mais ser encontrado.
-5. **Consistência de interface:** a seleção do usuário deve atualizar a descrição para o ano correto.
+Os testes foram elaborados priorizando os principais fluxos funcionais solicitados no desafio.
 
-A API utiliza um ID dinâmico para reduzir colisões com execuções de outros usuários do ambiente público.
+### Backend
 
-## 5. Ambiente e ferramentas
+Os cenários contemplam:
+
+- Cadastro de um pet;
+- Consulta do pet cadastrado;
+- Consulta de um recurso inexistente;
+- Exclusão do pet;
+- Confirmação da exclusão.
+
+Foi utilizado um **ID dinâmico**, reduzindo a possibilidade de conflitos com outros usuários da API pública.
+
+### Frontend
+
+Os cenários contemplam:
+
+- Navegação até a página **História**;
+- Seleção dos anos da linha do tempo;
+- Consistência entre o ano selecionado e o conteúdo apresentado ao usuário.
+
+---
+
+## 5. Ambiente e Ferramentas
 
 | Camada | Ferramenta | Finalidade |
-|---|---|---|
-| API | Postman | Construção e documentação das requisições |
-| API | Newman | Execução em linha de comando e relatório HTML |
-| Web | Playwright + TypeScript | Automação do navegador, asserções e evidências |
-| CI | GitHub Actions | Execução automatizada a cada alteração |
+|---------|------------|------------|
+| Backend | Postman | Construção e validação das requisições |
+| Backend | Newman | Execução automatizada da coleção |
+| Frontend | Playwright + TypeScript | Automação dos testes web |
+| CI/CD | GitHub Actions | Execução automática dos testes |
 
-## 6. Critérios de entrada
+---
+
+## 6. Critérios de Entrada
 
 - Acesso à internet.
-- Node.js 20 ou superior.
+- Node.js instalado.
 - Dependências instaladas com `npm install`.
 - Chromium instalado com `npx playwright install chromium`.
-- Swagger Petstore e site da Phoebus disponíveis.
+- API Swagger Petstore disponível.
+- Site da Phoebus disponível.
 
-## 7. Critérios de saída
+---
+
+## 7. Critérios de Saída
 
 - Todos os cenários obrigatórios executados.
-- Nenhuma falha crítica aberta.
-- Relatórios gerados para API e frontend.
-- Três screenshots anexados ao relatório do Playwright.
+- Relatórios gerados.
+- Evidências registradas.
+- Defeitos encontrados documentados.
 
-## 8. Casos de teste — API
+---
 
-| ID | Requisito | Cenário | Pré-condição | Passos | Resultado esperado | Prioridade |
-|---|---|---|---|---|---|---|
-| API-001 | REQ-01 | Cadastrar pet com dados válidos | API disponível | Enviar `POST /pet` com ID, nome, `photoUrls` e status | HTTP 200; JSON contém ID, nome e status enviados | Alta |
-| API-002 | REQ-02 | Consultar pet cadastrado | API-001 aprovado | Enviar `GET /pet/{petId}` | HTTP 200; ID, nome e status iguais aos cadastrados | Alta |
-| API-003 | REQ-03 | Consultar ID inexistente | ID sabidamente inexistente | Enviar `GET /pet/{inexistentPetId}` | HTTP 404; resposta informa que o pet não foi encontrado | Alta |
-| API-004 | REQ-04 | Excluir pet cadastrado | API-001 aprovado | Enviar `DELETE /pet/{petId}` | HTTP 200; resposta referencia o ID excluído | Alta |
-| API-005 | Complementar | Confirmar exclusão | API-004 aprovado | Enviar novo `GET /pet/{petId}` | HTTP 404; pet não encontrado | Alta |
-| API-006 | Negativo | Cadastrar sem `name` | API disponível | Enviar payload sem o campo obrigatório | A API deveria rejeitar com 4xx; eventual aceitação deve ser registrada como defeito de contrato | Média |
-| API-007 | Negativo | Consultar ID em formato inválido | API disponível | Enviar texto no parâmetro `petId` | HTTP 400 ou resposta de erro coerente | Média |
-| API-008 | Negativo | Excluir ID inexistente | ID sabidamente inexistente | Enviar `DELETE` | HTTP 404 ou resposta de erro documentada | Média |
+## 8. Casos de Teste — Backend
 
-> Os casos API-006 a API-008 foram mapeados para análise exploratória, mas não fazem parte da execução obrigatória automatizada para evitar tornar o pipeline instável diante das inconsistências conhecidas da API pública de demonstração.
+| ID | Cenário | Resultado Esperado |
+|----|----------|-------------------|
+| API-001 | Cadastrar pet | HTTP 200 e dados persistidos |
+| API-002 | Consultar pet cadastrado | HTTP 200 e dados iguais aos cadastrados |
+| API-003 | Consultar ID inexistente | HTTP 404 |
+| API-004 | Excluir pet | HTTP 200 |
+| API-005 | Confirmar exclusão | HTTP 404 |
 
-## 9. Casos de teste — Frontend
+### Casos exploratórios
 
-| ID | Cenário | Passos | Resultado esperado | Evidência | Prioridade |
-|---|---|---|---|---|---|
-| WEB-001 | Abrir seção História | Abrir página e clicar em HISTÓRIA | Título “Nossa História” visível | Relatório | Alta |
-| WEB-002 | Validar 1997 | Clicar em 1997 | Descrição visível começa com `1997 -` | Screenshot | Alta |
-| WEB-003 | Validar 2010 | Clicar em 2010 | Descrição visível começa com `2010 -` | Screenshot | Alta |
-| WEB-004 | Validar 2022 | Clicar em 2022 | Descrição visível começa com `2022 -` | Screenshot | Alta |
-| WEB-005 | Responsividade básica | Executar em viewport móvel | Linha do tempo continua navegável | Screenshot/relatório | Baixa |
-| WEB-006 | Ano sem conteúdo | Selecionar cada item disponível | Nenhuma seleção deixa descrição vazia ou inconsistente | Relatório | Média |
+| ID | Cenário | Resultado Esperado |
+|----|----------|-------------------|
+| API-006 | Cadastro sem nome | Validar o comportamento da API conforme o contrato do endpoint |
+| API-007 | Consulta com ID inválido | A API deve retornar erro compatível |
+| API-008 | Exclusão de ID inexistente | A API deve retornar erro compatível |
 
-## 10. Riscos e mitigações
+---
+
+## 9. Casos de Teste — Frontend
+
+| ID | Cenário | Resultado Esperado |
+|----|----------|-------------------|
+| WEB-001 | Abrir História | Exibir o título **Nossa História** |
+| WEB-002 | Selecionar 1997 | O conteúdo exibido inicia com **1997 -** |
+| WEB-003 | Selecionar 2010 | O conteúdo exibido inicia com **2010 -** |
+| WEB-004 | Selecionar 2022 | O conteúdo exibido inicia com **2022 -** |
+| WEB-005 | Responsividade básica | A linha do tempo permanece navegável |
+| WEB-006 | Validação exploratória | O conteúdo da linha do tempo permanece consistente após a seleção dos anos disponíveis |
+
+---
+
+## 10. Riscos e Mitigações
 
 | Risco | Impacto | Mitigação |
-|---|---|---|
-| API pública compartilhada sobrescrever IDs | Resultado intermitente | ID gerado com timestamp e sufixo aleatório |
-| Instabilidade externa | Falhas sem relação com o código | Retry apenas no CI e registro de trace/vídeo em falhas web |
-| Alteração de classes CSS do site | Quebra de seletores | Seleção por texto e sem dependência de classes geradas |
-| Conteúdo duplicado/oculto no DOM | Clique no elemento errado | Função que escolhe apenas o primeiro elemento visível |
-| Banner ou carregamento tardio | Timeout | Esperas por estado visível e limites explícitos |
+|---------|----------|-----------|
+| API pública compartilhada | Resultados inconsistentes | Utilização de IDs dinâmicos |
+| Instabilidade da internet | Falhas durante a execução | Reexecutar os testes quando necessário |
+| Alteração da estrutura HTML | Quebra dos seletores | Utilizar seletores por Role e por texto |
+| Conteúdo duplicado ou oculto no DOM | Seleção incorreta de elementos | Interagir apenas com elementos visíveis |
+| Banner de cookies | Timeout durante os testes | Tratar o banner antes da execução |
+| Componentes dinâmicos da interface (Wix) | Possível instabilidade na automação da linha do tempo | Registrar vídeos, traces e capturas de tela para apoiar a análise das falhas |
 
-## 11. Registro de defeitos
+---
 
-Cada defeito deve conter: título, ambiente, pré-condições, passos, resultado atual, resultado esperado, severidade, prioridade e evidências.
+## 11. Registro de Defeitos
+
+Cada defeito registrado deve conter:
+
+- Título;
+- Ambiente;
+- Pré-condições;
+- Passos para reprodução;
+- Resultado obtido;
+- Resultado esperado;
+- Severidade;
+- Prioridade;
+- Evidências (capturas de tela, vídeos ou arquivos de trace).
+
+---
+
+## 12. Observações da Execução dos Testes
+
+### Limitação encontrada na automação do Frontend
+
+Durante a automação da seção **História** do site da Phoebus, foi observado um comportamento inconsistente na atualização da linha do tempo.
+
+### Cenário executado
+
+- Acessar o site da Phoebus.
+- Navegar até a página **História**.
+- Selecionar os anos **1997**, **2010** e **2022**.
+- Validar que o conteúdo exibido corresponde ao ano selecionado.
+
+### Resultado observado
+
+O Playwright localizou corretamente os botões da linha do tempo utilizando seletores por acessibilidade (`getByRole('button', { name: '2010' })`).
+
+Entretanto, em algumas execuções automatizadas, após a interação com o botão referente ao ano **2010**, o conteúdo da linha do tempo não foi atualizado, permanecendo a descrição do ano anteriormente selecionado.
+
+Durante diferentes execuções automatizadas, foi observado comportamento inconsistente na atualização do conteúdo da linha do tempo.
+
+### Evidências coletadas
+
+- Relatório HTML do Playwright.
+- Arquivos `trace.zip`.
+- Vídeos das execuções (`video.webm`).
+- Capturas de tela.
+
+### Análise realizada
+
+Foram avaliadas diferentes abordagens para investigar o comportamento observado, incluindo:
+
+- Seletores por texto.
+- Seletores por Role.
+- Geração de código com Playwright Codegen.
+- Esperas explícitas.
+- Scroll até o elemento.
+- Clique convencional.
+- Clique forçado.
+- Navegação por teclado.
+- Desativação de animações.
+
+Mesmo após essas tentativas, o comportamento permaneceu inconsistente durante a automação.
+
+### Conclusão
+
+Durante a execução automatizada, foi observado que, em algumas execuções, a atualização da linha do tempo não ocorreu conforme esperado.
+
+As evidências coletadas (relatórios, vídeos, capturas de tela e arquivos de trace) foram preservadas para apoiar a análise dos resultados obtidos durante o desafio técnico.
+
+Essa limitação foi documentada para registrar o comportamento observado durante a automação e preservar a rastreabilidade das evidências coletadas.
